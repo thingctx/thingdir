@@ -1,0 +1,13 @@
+.git
+.venv
+.pytest_cache
+__pycache__
+*.pyc
+*.egg-info
+.coverage
+build
+dist
+tests
+examples
+.claude
+.claude.json

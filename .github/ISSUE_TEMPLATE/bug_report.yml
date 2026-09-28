@@ -1,0 +1,38 @@
+name: Something is broken
+description: It does not work the way the docs say it does
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Only the first box matters. Fill in what you know and skip the rest.
+        We can work the details out in the comments.
+
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you tried, and what happened instead.
+      placeholder: |
+        Reading a property returned nothing. I expected the temperature value.
+    validations:
+      required: true
+
+  - type: textarea
+    id: detail
+    attributes:
+      label: Anything that helps us see it
+      description: >
+        Optional. A few lines of code, the Thing Description, an error message. Whatever
+        you have. Leave out anything secret.
+    validations:
+      required: false
+
+  - type: textarea
+    id: setup
+    attributes:
+      label: Your setup
+      description: Optional. Roughly what you are running.
+      placeholder: "thingdir 0.1.0, Python 3.12, macOS, FsStore on a local folder, installed with [server,rdf]"
+    validations:
+      required: false

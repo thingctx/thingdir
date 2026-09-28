@@ -1,0 +1,26 @@
+name: An idea
+description: Something thingdir should be able to do
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Rough is fine. A vague idea is easier to talk about than no idea.
+
+  - type: textarea
+    id: idea
+    attributes:
+      label: What are you trying to do
+      description: >
+        What are you pointing an agent at, and where does thingdir stop helping? The
+        problem is more useful than a proposed fix, though bring the fix too if you have one.
+    validations:
+      required: true
+
+  - type: textarea
+    id: more
+    attributes:
+      label: Anything else
+      description: Optional. A sketch, a link, a protocol name, an example.
+    validations:
+      required: false

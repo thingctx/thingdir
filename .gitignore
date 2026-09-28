@@ -1,0 +1,14 @@
+__pycache__/
+*.pyc
+*.egg-info/
+.venv/
+.pytest_cache/
+dist/
+build/
+.coverage
+.DS_Store
+
+# Agent instructions , never commit (house rule)
+.claude/
+.claude.json
+MAINTAINERS_AGENT.md

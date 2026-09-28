@@ -1,0 +1,11 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Looking for something to work on
+    url: https://github.com/thingctx/thingdir/contribute
+    about: Issues tagged good first issue, each naming the files to touch and when it is finished.
+  - name: Adding a storage backend
+    url: https://github.com/thingctx/thingdir/blob/main/CONTRIBUTING.md
+    about: The Store protocol a backend implements, and what changes_since has to guarantee.
+  - name: Security issue
+    url: https://github.com/thingctx/thingdir/security/advisories/new
+    about: Report privately here rather than in a public issue.

@@ -1,0 +1,90 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "thingdir"
+version = "0.1.0"
+description = "A W3C Thing Description Directory (TDD): host and serve a fleet of WoT Thing Descriptions."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "Apache-2.0" }
+authors = [{ name = "The thingdir Authors" }]
+keywords = ["wot", "web-of-things", "thing-description", "tdd", "directory", "discovery"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Internet :: WWW/HTTP :: HTTP Servers",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: System :: Networking",
+    "Typing :: Typed",
+]
+
+# The library: a store, search, and the index. No HTTP.
+dependencies = ["jsonpath-ng>=1.6", "fsspec>=2024.0"]
+
+[project.urls]
+Homepage = "https://github.com/thingctx/thingdir"
+Source = "https://github.com/thingctx/thingdir"
+Issues = "https://github.com/thingctx/thingdir/issues"
+Changelog = "https://github.com/thingctx/thingdir/blob/main/CHANGELOG.md"
+
+[project.optional-dependencies]
+# The HTTP server: the TDD API and the `thingdir` command. Kept out of the base
+# install because the directory embeds without it, and an embedder should not
+# have to take FastAPI, uvicorn, starlette and pydantic to use a store.
+server = ["fastapi>=0.110", "uvicorn>=0.27"]
+# A SQL store over any SQLAlchemy engine (sqlite/postgres/mysql/mssql/Fabric).
+# Add a driver for your database, e.g. psycopg (postgres) or pyodbc (mssql).
+sql = ["sqlalchemy>=2.0"]
+postgres = ["sqlalchemy>=2.0", "psycopg[binary]>=3.1"]
+mssql = ["sqlalchemy>=2.0", "pyodbc>=5.0"]
+# RDF / SPARQL semantic search (embedded Oxigraph triplestore).
+rdf = ["pyoxigraph>=0.5"]
+# Remote file stores (the FsStore backend for each).
+s3 = ["s3fs>=2024.0"]
+azure = ["adlfs>=2024.0"]
+gcs = ["gcsfs>=2024.0"]
+# A document-DB store over the MongoDB API (MongoDB/Atlas, Cosmos, DocumentDB).
+mongo = ["pymongo>=4.6"]
+# A Redis-family store (Redis/ElastiCache/Azure Cache/Memorystore/Valkey).
+redis = ["redis>=5.0"]
+# Validate TDs against the W3C TD 1.1 schema on write (via thingctx). The
+# extra matters: plain thingctx has no jsonschema, so validate_td raises
+# ImportError and app._validate skips silently, leaving this extra inert.
+validate = ["thingctx[validate]>=0.1.2"]
+dev = ["pytest>=7", "pytest-asyncio>=0.21", "httpx>=0.25", "sqlalchemy>=2.0", "fastapi>=0.110", "uvicorn>=0.27", "ruff==0.16.8"]
+
+[project.scripts]
+thingdir = "thingdir.cli:main"
+
+[tool.ruff]
+line-length = 100
+# Code blocks in the README use aligned inline comments to line up options.
+# That is prose formatting, not source formatting; keep it out of scope.
+extend-exclude = ["*.md"]
+target-version = "py310"
+
+[tool.ruff.lint]
+# pycodestyle errors, pyflakes, import sorting, pyupgrade, bugbear.
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.ruff.lint.per-file-ignores]
+# Tests favor compact one liners and import after an importorskip guard.
+"tests/*" = ["E402", "E501", "E701", "E702"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+
+[tool.setuptools.package-data]
+thingdir = ["vocabularies/*.ttl", "vocabularies/*.jsonld"]

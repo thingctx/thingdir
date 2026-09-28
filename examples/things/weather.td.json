@@ -1,0 +1,28 @@
+{
+  "@context": [
+    "https://www.w3.org/2022/wot/td/v1.1",
+    {
+      "schema": "https://schema.org/",
+      "om": "http://www.ontology-of-units-of-measure.org/resource/om-2/"
+    }
+  ],
+  "id": "urn:svc:weather:v1",
+  "title": "Weather API",
+  "@type": "schema:WebAPI",
+  "securityDefinitions": { "bearer_sc": { "scheme": "bearer" } },
+  "security": ["bearer_sc"],
+  "properties": {
+    "temperature": {
+      "@type": "schema:QuantitativeValue",
+      "type": "number", "unit": "om:degreeCelsius", "readOnly": true,
+      "forms": [{ "href": "https://api.example.com/temp" }]
+    }
+  },
+  "actions": {
+    "forecast": {
+      "input": { "type": "object", "properties": { "city": { "type": "string" } } },
+      "output": { "type": "object" },
+      "forms": [{ "href": "https://api.example.com/forecast", "htv:methodName": "POST" }]
+    }
+  }
+}

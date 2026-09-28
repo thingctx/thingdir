@@ -1,0 +1,6 @@
+# The sdist carries tests, and three of them read the example descriptions, so
+# a tarball without examples/ ships a suite that cannot pass. Distributors run
+# it; keep the fixtures with the tests that need them.
+include LICENSE NOTICE DCO CHANGELOG.md CONTRIBUTING.md CODE_OF_CONDUCT.md SECURITY.md
+recursive-include examples *.json
+recursive-include tests *.py
