@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+- SPARQL search: an object or array under `const`, `default` or `enum` projects as one
+  JSON literal (`rdf:JSON`) instead of being read as JSON-LD, which failed the whole TD
+  when the object had a `type` key.
+- SPARQL search: a TD that cannot be projected is logged and left out of the index. Before,
+  it failed every later write and kept the server from starting.
+
 ## 0.1.0 - 2026-09-27
 
 First release.

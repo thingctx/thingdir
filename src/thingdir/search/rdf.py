@@ -7,9 +7,13 @@ It is bundled so conversion works offline.
 
 from __future__ import annotations
 
+import functools
 import json
+import logging
 import pathlib
 from typing import Any
+
+_log = logging.getLogger("thingdir")
 
 _TD_VOCAB = "https://www.w3.org/2019/wot/td#"
 _REMOTE_CONTEXTS = {
@@ -44,6 +48,57 @@ def _localize_context(td: dict) -> dict:
     return out
 
 
+# A TD may give these terms any JSON value (TD 1.1, 5.3.2.1), but the TD context does not
+# mark them @json, so JSON-LD reads an object value as a node and its "type" key as @type.
+_DATA_TERMS = frozenset({"const", "default", "enum"})
+
+
+@functools.cache
+def _name_maps() -> frozenset[str]:
+    """Terms the TD context declares as index maps (``"@container": "@index"``), such as
+    ``properties``: a key inside one is a name, never a term."""
+    found: set[str] = set()
+
+    def walk(node: Any) -> None:
+        if isinstance(node, list):
+            for item in node:
+                walk(item)
+        elif isinstance(node, dict):
+            for key, value in node.items():
+                if isinstance(value, dict) and value.get("@container") == "@index":
+                    found.add(key)
+                walk(value)
+
+    walk(_td_context())
+    return frozenset(found)
+
+
+def _json_literal(value: Any) -> Any:
+    if isinstance(value, (dict, list)):
+        return {"@value": value, "@type": "@json"}
+    return value
+
+
+def _with_json_literals(node: Any) -> Any:
+    """A copy of ``node`` with each object or array value of a data term written as a
+    JSON-LD JSON literal, so it projects to one rdf:JSON value."""
+    if isinstance(node, list):
+        return [_with_json_literals(item) for item in node]
+    if not isinstance(node, dict):
+        return node
+    out: dict[str, Any] = {}
+    for key, value in node.items():
+        if key == "enum" and isinstance(value, list):
+            out[key] = [_json_literal(item) for item in value]
+        elif key in _DATA_TERMS:
+            out[key] = _json_literal(value)
+        elif key in _name_maps() and isinstance(value, dict):
+            out[key] = {name: _with_json_literals(item) for name, item in value.items()}
+        else:
+            out[key] = _with_json_literals(value)
+    return out
+
+
 class RdfIndex:
     """An embedded Oxigraph RDF index.
 
@@ -58,14 +113,20 @@ class RdfIndex:
     async def sync(self, store) -> int:
         """Apply store changes since this index's cursor.
 
-        A cursor of zero rebuilds the index. Repeating a sync is safe.
+        A cursor of zero rebuilds the index. Repeating a sync is safe. A TD that
+        cannot be projected is left out of the index and logged; it stays in the
+        store, and the cursor moves past it, so it cannot fail every later sync.
         """
         new_cursor, changes = await store.changes_since(self._cursor)
         for td_id, td, _seq in changes:
             if td is None:
                 self.remove(td_id)
-            else:
+                continue
+            try:
                 self.insert(td_id, td)
+            except (SyntaxError, ValueError) as e:
+                self.remove(td_id)
+                _log.warning("thingdir: %s is stored but not searchable by SPARQL: %s", td_id, e)
         self._cursor = new_cursor
         return new_cursor
 
@@ -87,7 +148,7 @@ class RdfIndex:
         store = self._store_()
         graph = pyoxigraph.NamedNode(td_id)
         self.remove(td_id)
-        doc = _localize_context({**td, "id": td_id})
+        doc = _localize_context(_with_json_literals({**td, "id": td_id}))
         store.load(
             json.dumps(doc).encode(),
             format=pyoxigraph.RdfFormat.JSON_LD,
